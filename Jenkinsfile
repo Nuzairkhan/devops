@@ -11,12 +11,11 @@ pipeline {
 
    stages {
 
-       /* -------------------- 1️⃣ SONARQUBE -------------------- */
        stage('Code Quality') {
            steps {
                echo 'Sonar Analysis Started'
                sh '''
-                   sudo docker run --rm \
+                   docker run --rm \
                    -e SONAR_HOST_URL="${SONAR_HOST_URL}" \
                    -e SONAR_TOKEN="${SONAR_TOKEN}" \
                    -v "$WORKSPACE:/usr/src" \
@@ -27,7 +26,6 @@ pipeline {
            }
        }
 
-       /* -------------------- 2️⃣ BUILD -------------------- */
        stage('Build LMS') {
            steps {
                echo 'LMS Build Started'
@@ -39,36 +37,28 @@ pipeline {
            }
        }
 
-       /* -------------------- 3️⃣ PUBLISH ARTIFACT TO NEXUS -------------------- */
        stage('Publish LMS') {
            steps {
                script {
                    def packageJson = readJSON file: 'package.json'
                    def version = packageJson.version
-                   echo "Version: ${version}"
 
                    sh """
                        zip lms-${version}.zip -r build
-                       curl -v -u ${NEXUS_USER}:${NEXUS_PASS} \
-                       --upload-file lms-${version}.zip \
-                       ${NEXUS_URL}
+                       curl -v -u ${NEXUS_USER}:${NEXUS_PASS} --upload-file lms-${version}.zip ${NEXUS_URL}
                    """
                }
            }
        }
 
-       /* -------------------- 4️⃣ DEPLOY TO NGINX -------------------- */
        stage('Deploy LMS') {
            steps {
                script {
                    def packageJson = readJSON file: 'package.json'
                    def version = packageJson.version
-                   echo "Deploying version: ${version}"
 
                    sh """
-                       curl -u ${NEXUS_USER}:${NEXUS_PASS} \
-                       -X GET '${NEXUS_URL}lms-${version}.zip' \
-                       --output lms-${version}.zip
+                       curl -u ${NEXUS_USER}:${NEXUS_PASS} -X GET '${NEXUS_URL}lms-${version}.zip' --output lms-${version}.zip
 
                        sudo rm -rf /var/www/html/*
                        sudo unzip -o lms-${version}.zip
@@ -78,10 +68,9 @@ pipeline {
            }
        }
 
-       /* -------------------- 5️⃣ CLEAN WORKSPACE -------------------- */
        stage('Clean Up Workspace') {
            steps {
-               echo 'Cleaning Work Space'
+               echo 'Cleaning Workspace'
                cleanWs()
            }
        }
