@@ -8,7 +8,7 @@ pipeline {
         }
         stage('Test') {
             steps {
-                sh 'cat /etc/os-release'
+                sh 'uname'
             }
         }
         stage('Deploy') {
