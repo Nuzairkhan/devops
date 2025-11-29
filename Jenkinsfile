@@ -22,7 +22,7 @@ pipeline {
        stage('Publish LMS') {
            steps {
                script {
-                   def packageJson = readJSON file: 'webapp/package.json'
+                   def packageJson = readJSON file: 'package.json'
                    def packageJSONVersion = packageJson.version
                    echo "${packageJSONVersion}"
                    sh "zip webapp/lms-${packageJSONVersion}.zip -r webapp/dist"
